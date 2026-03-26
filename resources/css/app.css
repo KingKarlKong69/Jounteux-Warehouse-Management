@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════════════
+   Theme Transition System — Smooth Dark/Light Mode Switching
+   ═══════════════════════════════════════════════════════════════ */
+
+.theme-transitioning,
+.theme-transitioning *,
+.theme-transitioning *::before,
+.theme-transitioning *::after {
+    transition: background-color 500ms ease,
+                color 300ms ease,
+                border-color 300ms ease,
+                box-shadow 300ms ease,
+                fill 300ms ease,
+                stroke 300ms ease !important;
+}
+
+/* Construction Warehouse Login Theme */
+
+@layer components {
+    /* Glass Morphism Effect */
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    }
+
+    /* Animated Gradient Background */
+    .animated-gradient-bg {
+        background: linear-gradient(
+            -45deg,
+            #FF6B35,    /* Construction Orange */
+            #FFC107,    /* Industrial Yellow */
+            #495057,    /* Steel Gray */
+            #FF8C42,    /* Light Orange */
+            #6C757D     /* Metallic Gray */
+        );
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+    }
+
+    /* Floating Label Input */
+    .floating-input {
+        @apply w-full px-4 pt-6 pb-2 text-base bg-white/10 border-2 border-warehouse-concrete/30 rounded-lg transition-all duration-300 focus:outline-none focus:border-warehouse-orange focus:bg-white/20 backdrop-blur-sm;
+    }
+
+    .floating-input:focus ~ .floating-label,
+    .floating-input:not(:placeholder-shown) ~ .floating-label {
+        @apply text-xs top-2 text-warehouse-orange;
+    }
+
+    .floating-label {
+        @apply absolute left-4 top-1/2 -translate-y-1/2 text-base text-white/70 transition-all duration-300 pointer-events-none;
+    }
+
+    /* Ripple Effect */
+    .ripple-container {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.6);
+        transform: scale(0);
+        animation: ripple 0.6s ease-out;
+        pointer-events: none;
+    }
+
+    /* Hover Glow Effect */
+    .hover-glow {
+        @apply transition-all duration-300 ease-in-out;
+    }
+
+    .hover-glow:hover {
+        box-shadow: 0 0 20px rgba(255, 107, 53, 0.6),
+                    0 0 40px rgba(255, 107, 53, 0.4),
+                    0 0 60px rgba(255, 107, 53, 0.2);
+        transform: translateY(-2px);
+    }
+
+    /* Input Shake Animation (for errors) */
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+
+    .shake {
+        animation: shake 0.5s;
+    }
+
+    /* Loading State */
+    @keyframes spin-glow {
+        0% {
+            transform: rotate(0deg);
+            box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+        }
+        100% {
+            transform: rotate(360deg);
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.8);
+        }
+    }
+
+    .spin-glow {
+        animation: spin-glow 1s linear infinite;
+    }
+
+    /* Construction Pattern Overlay */
+    .construction-pattern {
+        background-image: 
+            repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 193, 7, 0.03) 10px,
+                rgba(255, 193, 7, 0.03) 20px
+            );
+    }
+
+    /* Floating Shapes */
+    .floating-shape {
+        position: absolute;
+        opacity: 0.1;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .floating-shape:nth-child(2) {
+        animation-delay: 2s;
+    }
+
+    .floating-shape:nth-child(3) {
+        animation-delay: 4s;
+    }
+}
+
+@layer utilities {
+    /* Text Utilities */
+    .text-shadow-sm {
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .text-shadow {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Smooth Transitions */
+    .transition-smooth {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Focus States */
+    .focus-glow:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.3);
+    }
+}
