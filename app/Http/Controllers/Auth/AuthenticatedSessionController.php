@@ -12,7 +12,9 @@ use Illuminate\Auth\Events\Logout as LaravelLogout;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -64,25 +66,34 @@ class AuthenticatedSessionController extends Controller
             if ($user) {
 
                 // Increment failed attempts without triggering Auditable trait
-                User::withoutEvents(function () use ($user) {
-                    $user->increment('failed_login_attempts');
-                });
-                $user->refresh();
+                if (Schema::hasColumn($user->getTable(), 'failed_login_attempts')) {
+                    User::withoutEvents(function () use ($user) {
+                        $user->increment('failed_login_attempts');
+                    });
+                    $user->refresh();
+                }
 
-                event(new AuditLogEvent(
-                    user: $user,
-                    action: AuditAction::FAILED_LOGIN->value,
-                    auditableType: User::class,
-                    auditableId: $user->id,
-                    newValues: [
-                        'attempt_number' => $user->failed_login_attempts,
-                        'email' => $user->email,
-                    ],
-                    ipAddress: $request->ip(),
-                ));
+                try {
+                    event(new AuditLogEvent(
+                        user: $user,
+                        action: AuditAction::FAILED_LOGIN->value,
+                        auditableType: User::class,
+                        auditableId: $user->id,
+                        newValues: [
+                            'attempt_number' => $user->failed_login_attempts,
+                            'email' => $user->email,
+                        ],
+                        ipAddress: $request->ip(),
+                    ));
+                } catch (\Throwable $auditError) {
+                    Log::warning('Failed to write failed-login audit event.', [
+                        'user_id' => $user->id,
+                        'error' => $auditError->getMessage(),
+                    ]);
+                }
 
                 // Auto block after 3 failed attempts
-                if ($user->failed_login_attempts >= 3) {
+                if (Schema::hasColumn($user->getTable(), 'is_blocked') && $user->failed_login_attempts >= 3) {
 
                     User::withoutEvents(function () use ($user) {
                         $user->update([
@@ -123,11 +134,13 @@ class AuthenticatedSessionController extends Controller
 
             // Reset failed login attempts without triggering Auditable trait
             // (the LOGIN audit entry is handled by LogSuccessfulLogin listener)
-            User::withoutEvents(function () use ($authenticatedUser) {
-                $authenticatedUser->update([
-                    'failed_login_attempts' => 0,
-                ]);
-            });
+            if (Schema::hasColumn($authenticatedUser->getTable(), 'failed_login_attempts')) {
+                User::withoutEvents(function () use ($authenticatedUser) {
+                    $authenticatedUser->update([
+                        'failed_login_attempts' => 0,
+                    ]);
+                });
+            }
 
             // Role-based redirect
             if ($authenticatedUser->role === 'admin') {
