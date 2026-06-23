@@ -10,7 +10,7 @@ const reverbScheme = import.meta.env.VITE_REVERB_SCHEME ?? window.location.proto
 
 const echo = reverbKey
     ? new Echo({
-        broadcaster: 'pusher',
+        broadcaster: 'reverb',
 
         key: reverbKey,
 
