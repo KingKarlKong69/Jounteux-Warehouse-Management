@@ -22,6 +22,7 @@ use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
@@ -45,6 +46,14 @@ class AppServiceProvider extends ServiceProvider
 
         if (app()->environment('production')) {
             URL::forceScheme('https');
+        }
+
+        if (! File::exists(public_path('storage')) && ! is_link(public_path('storage'))) {
+            try {
+                File::link(storage_path('app/public'), public_path('storage'));
+            } catch (\Throwable $e) {
+                // Ignore if the environment does not allow symlink creation.
+            }
         }
 
         // Register policies

@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateProductRequest;
 use Inertia\Inertia;
 use App\Models\Products;
 use App\Models\Category;
+use App\Models\AppNotification;
 use App\Http\Resources\ProductResource;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
@@ -176,6 +177,16 @@ class ProductController extends Controller
             }
         });
 
+        AppNotification::notifyAdmins(
+            Auth::id(),
+            'product',
+            "New product \"{$validated['name']}\" was created.",
+            Products::class,
+            null,
+            $validated['sku'],
+            route('admin.products.index')
+        );
+
         // Return Inertia visit response to reload index properly
         return redirect()->route('admin.products.index')
             ->with('success', 'Product created successfully.');
@@ -238,6 +249,16 @@ class ProductController extends Controller
 
         $product->update($validated);
 
+        AppNotification::notifyAdmins(
+            Auth::id(),
+            'product',
+            "Product \"{$product->name}\" was updated.",
+            Products::class,
+            $product->id,
+            $product->sku,
+            route('admin.products.index')
+        );
+
         return redirect()->route('admin.products.index')
             ->with('success', 'Product updated successfully.');
     }
@@ -250,6 +271,16 @@ class ProductController extends Controller
         $product = Products::findOrFail($id);
         
         $product->delete(); // This performs a soft delete
+
+        AppNotification::notifyAdmins(
+            Auth::id(),
+            'product',
+            "Product \"{$product->name}\" was archived.",
+            Products::class,
+            $product->id,
+            $product->sku,
+            route('admin.products.index', ['show_deleted' => 'true'])
+        );
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product deleted successfully.');
@@ -264,6 +295,16 @@ class ProductController extends Controller
         
         $product->restore();
 
+        AppNotification::notifyAdmins(
+            Auth::id(),
+            'product',
+            "Product \"{$product->name}\" was restored.",
+            Products::class,
+            $product->id,
+            $product->sku,
+            route('admin.products.index', ['show_deleted' => 'true'])
+        );
+
         return redirect()->route('admin.products.index')
             ->with('success', 'Product restored successfully.');
     }
@@ -276,6 +317,16 @@ class ProductController extends Controller
         $product = Products::onlyTrashed()->findOrFail($id);
         
         $product->forceDelete();
+
+        AppNotification::notifyAdmins(
+            Auth::id(),
+            'product',
+            "Product \"{$product->name}\" was permanently deleted.",
+            Products::class,
+            $product->id,
+            $product->sku,
+            route('admin.products.index', ['show_deleted' => 'true'])
+        );
 
         return redirect()->route('admin.products.index', ['show_deleted' => 'true'])
             ->with('success', 'Product permanently deleted.');
